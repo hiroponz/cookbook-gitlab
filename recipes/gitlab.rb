@@ -10,8 +10,8 @@ gitlab = node['gitlab']
 git gitlab['path'] do
   repository gitlab['repository']
   revision gitlab['revision']
-  user gitlab['user']
-  group gitlab['group']
+  user gitlab['host_user_id']
+  group gitlab['host_group_id']
   action :sync
 end
 
@@ -19,8 +19,8 @@ end
 ### Copy the example GitLab config
 template File.join(gitlab['path'], 'config', 'gitlab.yml') do
   source "gitlab.yml.erb"
-  user gitlab['user']
-  group gitlab['group']
+  user gitlab['host_user_id']
+  group gitlab['host_group_id']
   variables({
     :host => gitlab['host'],
     :port => gitlab['port'],
@@ -36,23 +36,23 @@ end
 ### Make sure GitLab can write to the log/ and tmp/ directories
 %w{log tmp}.each do |path|
   directory File.join(gitlab['path'], path) do
-    owner gitlab['user']
-    group gitlab['group']
+    owner gitlab['host_user_id']
+    group gitlab['host_group_id']
     mode 0755 
   end
 end
 
 ### Create directory for satellites
 directory gitlab['satellites_path'] do
-  owner gitlab['user']
-  group gitlab['group']
+  owner gitlab['host_user_id']
+  group gitlab['host_group_id']
 end
 
 ### Create directories for sockets/pids and make sure GitLab can write to them
 %w{tmp/pids tmp/sockets}.each do |path|
   directory File.join(gitlab['path'], path) do
-    owner gitlab['user']
-    group gitlab['group']
+    owner gitlab['host_user_id']
+    group gitlab['host_group_id']
     mode 0755 
   end
 end
@@ -60,8 +60,8 @@ end
 ### Create public/uploads directory otherwise backup will fail
 %w{public/uploads}.each do |path|
   directory File.join(gitlab['path'], path) do
-    owner gitlab['user']
-    group gitlab['group']
+    owner gitlab['host_user_id']
+    group gitlab['host_group_id']
     mode 0755
   end
 end
@@ -69,8 +69,8 @@ end
 ### Copy the example Puma config
 template File.join(gitlab['path'], "config", "puma.rb") do
   source "puma.rb.erb"
-  user gitlab['user']
-  group gitlab['group']
+  user gitlab['host_user_id']
+  group gitlab['host_group_id']
   variables({
     :path => gitlab['path'],
     :env => gitlab['env']
@@ -91,8 +91,8 @@ end
 ## Configure GitLab DB settings
 template File.join(gitlab['path'], "config", "database.yml") do
   source "database.yml.#{gitlab['database_adapter']}.erb"
-  user gitlab['user']
-  group gitlab['group']
+  user gitlab['host_user_id']
+  group gitlab['host_group_id']
   variables({
     :user => gitlab['user'],
     :password => gitlab['database_password']
@@ -132,8 +132,7 @@ end
 execute "bundle install" do
   command "#{gitlab['bundle_install']} --without #{bundle_without.join(" ")}"
   cwd gitlab['path']
-  user gitlab['user']
-  group gitlab['group']
+  user 'root'
   action :nothing
 end
 
@@ -141,29 +140,13 @@ end
 execute "rake db:setup" do
   command "bundle exec rake db:setup RAILS_ENV=#{gitlab['env']}"
   cwd gitlab['path']
-  user gitlab['user']
-  group gitlab['group']
+  user 'root'
   not_if {File.exists?(File.join(gitlab['home'], ".gitlab_setup"))}
 end
 
-file File.join(gitlab['home'], ".gitlab_setup") do
-  owner gitlab['user']
-  group gitlab['group']
-  action :create
-end
-
-### db:migrate
-execute "rake db:migrate" do
-  command "bundle exec rake db:migrate RAILS_ENV=#{gitlab['env']}"
-  cwd gitlab['path']
-  user gitlab['user']
-  group gitlab['group']
-  not_if {File.exists?(File.join(gitlab['home'], ".gitlab_migrate"))}
-end
-
-file File.join(gitlab['home'], ".gitlab_migrate") do
-  owner gitlab['user']
-  group gitlab['group']
+file File.join(gitlab['path'], ".gitlab_setup") do
+  owner gitlab['host_user_id']
+  group gitlab['host_group_id']
   action :create
 end
 
@@ -171,14 +154,13 @@ end
 execute "rake db:seed_fu" do
   command "bundle exec rake db:seed_fu RAILS_ENV=#{gitlab['env']}"
   cwd gitlab['path']
-  user gitlab['user']
-  group gitlab['group']
+  user 'root'
   not_if {File.exists?(File.join(gitlab['home'], ".gitlab_seed"))}
 end
 
 file File.join(gitlab['home'], ".gitlab_seed") do
-  owner gitlab['user']
-  group gitlab['group']
+  owner gitlab['host_user_id']
+  group gitlab['host_group_id']
   action :create
 end
 

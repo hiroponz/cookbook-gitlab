@@ -91,7 +91,7 @@ Vagrant.configure("2") do |config|
         :server_debian_password => "debianpass"
       },
       :gitlab => {
-        :database_adapter => "postgresql",
+        :database_adapter => "mysql",
         :database_password => "datapass"
       }
     }
