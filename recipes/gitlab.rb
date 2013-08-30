@@ -130,38 +130,40 @@ else
 end
 
 execute "bundle install" do
-  command "#{gitlab['bundle_install']} --without #{bundle_without.join(" ")}"
+  command "bundle_install --without #{bundle_without.join(" ")} --deployment"
   cwd gitlab['path']
   user 'root'
   action :nothing
 end
 
 ### db:setup
-execute "rake db:setup" do
-  command "bundle exec rake db:setup RAILS_ENV=#{gitlab['env']}"
-  cwd gitlab['path']
-  user 'root'
-  not_if {File.exists?(File.join(gitlab['home'], ".gitlab_setup"))}
-end
+gitlab['envs'].each do |env|
+  execute "rake db:setup" do
+    command "bundle exec rake db:setup RAILS_ENV=#{env}"
+    cwd gitlab['path']
+    user 'root'
+    not_if {File.exists?(File.join(gitlab['home'], ".gitlab_setup_#{env}"))}
+  end
 
-file File.join(gitlab['path'], ".gitlab_setup") do
-  owner gitlab['host_user_id']
-  group gitlab['host_group_id']
-  action :create
-end
+  file File.join(gitlab['path'], ".gitlab_setup_#{env}") do
+    owner gitlab['host_user_id']
+    group gitlab['host_group_id']
+    action :create
+  end
 
-### db:seed_fu
-execute "rake db:seed_fu" do
-  command "bundle exec rake db:seed_fu RAILS_ENV=#{gitlab['env']}"
-  cwd gitlab['path']
-  user 'root'
-  not_if {File.exists?(File.join(gitlab['home'], ".gitlab_seed"))}
-end
+  ### db:seed_fu
+  execute "rake db:seed_fu" do
+    command "bundle exec rake db:seed_fu RAILS_ENV=#{env}"
+    cwd gitlab['path']
+    user 'root'
+    not_if {File.exists?(File.join(gitlab['home'], ".gitlab_seed_#{env}"))}
+  end
 
-file File.join(gitlab['home'], ".gitlab_seed") do
-  owner gitlab['host_user_id']
-  group gitlab['host_group_id']
-  action :create
+  file File.join(gitlab['home'], ".gitlab_seed_#{env}") do
+    owner gitlab['host_user_id']
+    group gitlab['host_group_id']
+    action :create
+  end
 end
 
 ## Install Init Script

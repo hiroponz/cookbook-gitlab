@@ -13,13 +13,19 @@ end
 # production or development
 env = "development"
 
+if env = "production"
+  envs = %w{production}
+else
+  envs = %w{development test}
+end
+
 # Default user/group id for vagrant
 user = "git"
 group = "git"
 host_user_id = user
 host_group_id = group
 
-if RUBY_PLATFORM =~ /linux|darwin/ && env == "development"
+if RUBY_PLATFORM =~ /linux|darwin/ && env != "production"
   host_user_id = Process.euid
   host_group_id = Process.egid
 end
@@ -61,6 +67,6 @@ default['gitlab']['email_from'] = "gitlab@localhost"
 default['gitlab']['support_email'] = "support@localhost"
 
 # Gems
-default['gitlab']['bundle_install'] = "bundle install --path=.bundle --deployment"
+default['gitlab']['bundle_install'] = "bundle install --deployment"
 default['gitlab']['env'] = env
-
+default['gitlab']['envs'] = envs
