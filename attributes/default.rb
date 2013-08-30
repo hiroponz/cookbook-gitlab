@@ -44,7 +44,7 @@ default['gitlab']['revision'] = "master"
 default['gitlab']['path'] = "/vagrant/gitlab"
 
 # GitLab shell config
-default['gitlab']['url'] = "http://localhost/"
+default['gitlab']['url'] = "http://localhost:3000/"
 default['gitlab']['repos_path'] = "/vagrant/repositories"
 default['gitlab']['redis_path'] = "/usr/local/bin/redis-cli"
 default['gitlab']['redis_host'] = "127.0.0.1"
