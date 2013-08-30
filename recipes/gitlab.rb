@@ -167,6 +167,14 @@ gitlab['envs'].each do |env|
     group gitlab['group']
     action :create
   end
+
+  ### db:migrate
+  execute "rake db:migrate" do
+    command "bundle exec rake db:migrate RAILS_ENV=#{env}"
+    cwd gitlab['path']
+    user gitlab['user']
+    group gitlab['group']
+  end
 end
 
 case gitlab['env']
