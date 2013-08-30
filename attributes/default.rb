@@ -9,6 +9,7 @@ else
     curl openssh-server checkinstall libxml2-dev libxslt-dev libcurl4-openssl-dev libicu-dev
   }
 end
+packages << 'python-docutils'
 
 # production or development
 env = "development"
