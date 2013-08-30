@@ -148,7 +148,7 @@ gitlab['envs'].each do |env|
   end
 
   file File.join(gitlab['path'], ".gitlab_setup_#{env}") do
-    user gitlab['user']
+    owner gitlab['user']
     group gitlab['group']
     action :create
   end
@@ -162,8 +162,8 @@ gitlab['envs'].each do |env|
     not_if {File.exists?(File.join(gitlab['home'], ".gitlab_seed_#{env}"))}
   end
 
-  file File.join(gitlab['home'], ".gitlab_seed_#{env}") do
-    user gitlab['user']
+  file File.join(gitlab['path'], ".gitlab_seed_#{env}") do
+    owner gitlab['user']
     group gitlab['group']
     action :create
   end
