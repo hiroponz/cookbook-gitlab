@@ -11,9 +11,10 @@ else
 end
 packages << 'python-docutils'
 
-# production or development
+# development or production
 env = "development"
 
+# Also preparing test environment when development
 case env
 when "production"
   envs = %w{production}
@@ -21,16 +22,12 @@ else
   envs = %w{development test}
 end
 
-# Default user/group id for vagrant
-user = "vagrant"
-group = "vagrant"
-
 default['gitlab']['packages'] = packages
 default['gitlab']['ruby'] = "1.9.3-p392"
 
 # User
-default['gitlab']['user'] = user
-default['gitlab']['group'] = group
+default['gitlab']['user'] = "vagrant"
+default['gitlab']['group'] = "vagrant"
 default['gitlab']['home'] = "/home/vagrant"
 
 # GitLab shell
