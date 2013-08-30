@@ -202,4 +202,7 @@ when "production"
     action :create_if_missing
     notifies :start, "service[gitlab]"
   end
+else
+  # For execute test
+  include_recipe "phantomjs"
 end
