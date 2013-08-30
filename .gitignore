@@ -18,3 +18,5 @@ bin/*
 
 /gitlab
 /gitlab-shell
+/gitlab-satellites
+/repositories
