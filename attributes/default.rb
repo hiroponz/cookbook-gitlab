@@ -23,13 +23,6 @@ end
 # Default user/group id for vagrant
 user = "vagrant"
 group = "vagrant"
-host_user_id = user
-host_group_id = group
-
-#if RUBY_PLATFORM =~ /linux|darwin/ && env != "production"
-#  host_user_id = Process.euid
-#  host_group_id = Process.egid
-#end
 
 default['gitlab']['packages'] = packages
 default['gitlab']['ruby'] = "1.9.3-p392"
@@ -38,8 +31,6 @@ default['gitlab']['ruby'] = "1.9.3-p392"
 default['gitlab']['user'] = user
 default['gitlab']['group'] = group
 default['gitlab']['home'] = "/home/vagrant"
-default['gitlab']['host_user_id'] = host_user_id
-default['gitlab']['host_group_id'] = host_group_id
 
 # GitLab shell
 default['gitlab']['shell_repository'] = "git://github.com/gitlabhq/gitlab-shell.git"
