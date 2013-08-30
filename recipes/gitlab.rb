@@ -10,8 +10,8 @@ gitlab = node['gitlab']
 git gitlab['path'] do
   repository gitlab['repository']
   revision gitlab['revision']
-  user gitlab['host_user_id']
-  group gitlab['host_group_id']
+  user gitlab['user']
+  group gitlab['group']
   action :sync
 end
 
@@ -19,8 +19,8 @@ end
 ### Copy the example GitLab config
 template File.join(gitlab['path'], 'config', 'gitlab.yml') do
   source "gitlab.yml.erb"
-  user gitlab['host_user_id']
-  group gitlab['host_group_id']
+  user gitlab['user']
+  group gitlab['group']
   variables({
     :host => gitlab['host'],
     :port => gitlab['port'],
@@ -36,32 +36,32 @@ end
 ### Make sure GitLab can write to the log/ and tmp/ directories
 %w{log tmp}.each do |path|
   directory File.join(gitlab['path'], path) do
-    owner gitlab['host_user_id']
-    group gitlab['host_group_id']
-    mode 0755 
+    owner gitlab['user']
+    group gitlab['group']
+    mode 0755
   end
 end
 
 ### Create directory for satellites
 directory gitlab['satellites_path'] do
-  owner gitlab['host_user_id']
-  group gitlab['host_group_id']
+  owner gitlab['user']
+  group gitlab['group']
 end
 
 ### Create directories for sockets/pids and make sure GitLab can write to them
 %w{tmp/pids tmp/sockets}.each do |path|
   directory File.join(gitlab['path'], path) do
-    owner gitlab['host_user_id']
-    group gitlab['host_group_id']
-    mode 0755 
+    owner gitlab['user']
+    group gitlab['group']
+    mode 0755
   end
 end
 
 ### Create public/uploads directory otherwise backup will fail
 %w{public/uploads}.each do |path|
   directory File.join(gitlab['path'], path) do
-    owner gitlab['host_user_id']
-    group gitlab['host_group_id']
+    owner gitlab['user']
+    group gitlab['group']
     mode 0755
   end
 end
@@ -69,8 +69,8 @@ end
 ### Copy the example Puma config
 template File.join(gitlab['path'], "config", "puma.rb") do
   source "puma.rb.erb"
-  user gitlab['host_user_id']
-  group gitlab['host_group_id']
+  user gitlab['user']
+  group gitlab['group']
   variables({
     :path => gitlab['path'],
     :env => gitlab['env']
@@ -91,8 +91,8 @@ end
 ## Configure GitLab DB settings
 template File.join(gitlab['path'], "config", "database.yml") do
   source "database.yml.#{gitlab['database_adapter']}.erb"
-  user gitlab['host_user_id']
-  group gitlab['host_group_id']
+  user gitlab['user']
+  group gitlab['group']
   variables({
     :user => gitlab['user'],
     :password => gitlab['database_password']
@@ -130,9 +130,10 @@ else
 end
 
 execute "bundle install" do
-  command "bundle_install --without #{bundle_without.join(" ")} --deployment"
+  command "bundle install --without #{bundle_without.join(" ")} --deployment"
   cwd gitlab['path']
-  user 'root'
+  user gitlab['user']
+  group gitlab['group']
   action :nothing
 end
 
@@ -141,13 +142,14 @@ gitlab['envs'].each do |env|
   execute "rake db:setup" do
     command "bundle exec rake db:setup RAILS_ENV=#{env}"
     cwd gitlab['path']
-    user 'root'
+    user gitlab['user']
+    group gitlab['group']
     not_if {File.exists?(File.join(gitlab['home'], ".gitlab_setup_#{env}"))}
   end
 
   file File.join(gitlab['path'], ".gitlab_setup_#{env}") do
-    owner gitlab['host_user_id']
-    group gitlab['host_group_id']
+    user gitlab['user']
+    group gitlab['group']
     action :create
   end
 
@@ -155,37 +157,38 @@ gitlab['envs'].each do |env|
   execute "rake db:seed_fu" do
     command "bundle exec rake db:seed_fu RAILS_ENV=#{env}"
     cwd gitlab['path']
-    user 'root'
+    user gitlab['user']
+    group gitlab['group']
     not_if {File.exists?(File.join(gitlab['home'], ".gitlab_seed_#{env}"))}
   end
 
   file File.join(gitlab['home'], ".gitlab_seed_#{env}") do
-    owner gitlab['host_user_id']
-    group gitlab['host_group_id']
+    user gitlab['user']
+    group gitlab['group']
     action :create
   end
 end
-
-## Install Init Script
-template "/etc/init.d/gitlab" do
-  source "initd.erb"
-  mode 0755
-  variables({
-    :path => gitlab['path'],
-    :user => gitlab['user'],
-    :env => gitlab['env']
-  })
-end
-
-## Start Your GitLab Instance
-service "gitlab" do
-  supports :start => true, :stop => true, :restart => true, :status => true
-  action :enable
-end
-
-file File.join(gitlab['home'], ".gitlab_start") do
-  owner gitlab['user']
-  group gitlab['group']
-  action :create_if_missing
-  notifies :start, "service[gitlab]"
-end
+#
+### Install Init Script
+#template "/etc/init.d/gitlab" do
+#  source "initd.erb"
+#  mode 0755
+#  variables({
+#    :path => gitlab['path'],
+#    :user => gitlab['user'],
+#    :env => gitlab['env']
+#  })
+#end
+#
+### Start Your GitLab Instance
+#service "gitlab" do
+#  supports :start => true, :stop => true, :restart => true, :status => true
+#  action :enable
+#end
+#
+#file File.join(gitlab['home'], ".gitlab_start") do
+#  owner gitlab['user']
+#  group gitlab['group']
+#  action :create_if_missing
+#  notifies :start, "service[gitlab]"
+#end

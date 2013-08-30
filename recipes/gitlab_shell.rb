@@ -10,16 +10,16 @@ gitlab = node['gitlab']
 git gitlab['shell_path'] do
   repository gitlab['shell_repository']
   revision gitlab['shell_revision']
-  user gitlab['host_user_id']
-  group gitlab['host_group_id']
+  user gitlab['user']
+  group gitlab['group']
   action :sync
 end
 
 ## Edit config and replace gitlab_url
 template File.join(gitlab['shell_path'], "config.yml") do
   source "gitlab_shell.yml.erb"
-  user gitlab['host_user_id']
-  group gitlab['host_group_id']
+  user gitlab['user']
+  group gitlab['group']
   notifies :run, "execute[gitlab-shell install]", :immediately
   variables({
     :user => gitlab['user'],
@@ -37,6 +37,7 @@ end
 execute "gitlab-shell install" do
   command "./bin/install"
   cwd gitlab['shell_path']
-  user 'root'
+  user gitlab['user']
+  group gitlab['group']
   action :nothing
 end
