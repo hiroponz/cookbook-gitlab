@@ -1,6 +1,11 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+# You can ask for more memory and cores when creating your Vagrant machine:
+# GITLAB_VAGRANT_MEMORY=1536 GITLAB_VAGRANT_CORES=2 vagrant up
+MEMORY = ENV['GITLAB_VAGRANT_MEMORY'] || '1024'
+CORES = ENV['GITLAB_VAGRANT_CORES'] || '1'
+
 Vagrant.configure("2") do |config|
   # All Vagrant configuration is done here. The most common configuration
   # options are documented and commented below. For a complete reference,
@@ -19,7 +24,7 @@ Vagrant.configure("2") do |config|
   # via the IP. Host-only networks can talk to the host machine as well as
   # any other machines on the same network, but cannot be accessed (through this
   # network interface) by any external networks.
-  config.vm.network :private_network, ip: "33.33.33.10"
+  config.vm.network :private_network, ip: "192.168.3.14"
 
   # Create a public network, which generally matched to bridged network.
   # Bridged networks make the machine appear as another physical device on
@@ -44,7 +49,8 @@ Vagrant.configure("2") do |config|
   # Example for VirtualBox:
   config.vm.provider :virtualbox do |vb|
     # Use VBoxManage to customize the VM. For example to change memory:
-    vb.customize ["modifyvm", :id, "--memory", "1024"]
+    vb.customize ["modifyvm", :id, "--memory", MEMORY.to_i]
+    vb.customize ["modifyvm", :id, "--cpus", CORES.to_i]
   end
 
   # View the documentation for the provider you're using for more
