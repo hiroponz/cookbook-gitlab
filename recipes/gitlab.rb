@@ -137,32 +137,34 @@ execute "bundle install" do
   action :nothing
 end
 
-### db:setup
 gitlab['envs'].each do |env|
+  ### db:setup
+  gitlab_setup = File.join(gitlab['home'], ".gitlab_setup_#{env}")
   execute "rake db:setup" do
     command "bundle exec rake db:setup RAILS_ENV=#{env}"
     cwd gitlab['path']
     user gitlab['user']
     group gitlab['group']
-    not_if {File.exists?(File.join(gitlab['home'], ".gitlab_setup_#{env}"))}
+    not_if {File.exists?(gitlab_setup)}
   end
 
-  file File.join(gitlab['path'], ".gitlab_setup_#{env}") do
+  file gitlab_setup do
     owner gitlab['user']
     group gitlab['group']
     action :create
   end
 
   ### db:seed_fu
+  gitlab_seed = File.join(gitlab['home'], ".gitlab_seed_#{env}")
   execute "rake db:seed_fu" do
     command "bundle exec rake db:seed_fu RAILS_ENV=#{env}"
     cwd gitlab['path']
     user gitlab['user']
     group gitlab['group']
-    not_if {File.exists?(File.join(gitlab['home'], ".gitlab_seed_#{env}"))}
+    not_if {File.exists?(gitlab_seed)}
   end
 
-  file File.join(gitlab['path'], ".gitlab_seed_#{env}") do
+  file gitlab_seed do
     owner gitlab['user']
     group gitlab['group']
     action :create
