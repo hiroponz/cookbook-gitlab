@@ -41,3 +41,9 @@ execute "gitlab-shell install" do
   group gitlab['group']
   action :nothing
 end
+
+# Symlink gitlab-shell to vagrant home, so that sidekiq can use gitlab shell commands
+link "#{gitlab['home']}/gitlab-shell" do
+  to gitlab['shell_path']
+  not_if { File.exists?("#{gitlab['home']}/gitlab-shell") }
+end
